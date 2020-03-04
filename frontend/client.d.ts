@@ -1,0 +1,11 @@
+declare let content_div: Element;
+declare type HTTPMethods = 'GET' | 'POST' | 'PUT';
+declare function myFetch(meth: HTTPMethods, url: string, data?: any): Promise<string>;
+declare function fib(n: number): Promise<void>;
+declare function count(): Promise<void>;
+declare function GetJson(data: number): string;
+declare function reset(n: number): Promise<void>;
+declare let names: string[];
+declare function GetRandomInt(min: number, max: number): number;
+declare let ws: WebSocket;
+declare function send(message: any): void;
