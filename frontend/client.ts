@@ -1,6 +1,9 @@
 let content_div = document.querySelector('.content');
 type HTTPMethods = 'GET'|'POST'|'PUT';
 
+let path ='wss://'+ window.location.host+ '/ws/test';
+console.log('path: '+ path);
+
 function myFetch(meth:HTTPMethods, url:string, data?:any) {
     return fetch(url, {
         method: meth,
@@ -36,7 +39,7 @@ function GetRandomInt(min:number, max:number) {
     return Math.round((Math.random() * (max - min) + min));
 }
 
-let ws = new WebSocket('ws://server.dipperpansy.com/ws/test');
+let ws = new WebSocket(path);
 ws.onopen = () => {
     console.log('client open!');
     let name = names[GetRandomInt(0, names.length)];

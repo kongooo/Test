@@ -1,5 +1,6 @@
 declare let content_div: Element;
 declare type HTTPMethods = 'GET' | 'POST' | 'PUT';
+declare let path: string;
 declare function myFetch(meth: HTTPMethods, url: string, data?: any): Promise<string>;
 declare function fib(n: number): Promise<void>;
 declare function count(): Promise<void>;
