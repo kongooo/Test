@@ -36,7 +36,7 @@ function GetRandomInt(min:number, max:number) {
     return Math.round((Math.random() * (max - min) + min));
 }
 
-let ws = new WebSocket('ws://localhost:3000/ws/test');
+let ws = new WebSocket('ws://server.dipperpansy.com/ws/test');
 ws.onopen = () => {
     console.log('client open!');
     let name = names[GetRandomInt(0, names.length)];
