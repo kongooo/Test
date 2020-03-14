@@ -5,11 +5,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Dipper</title>
+    <title>Gobang</title>
 </head>
 
 <body>
-    <div class="content"></div>
+
+    <div class="back homepage">
+        <div>
+            <h1 class="name-text" contenteditable="false"></h1>
+            <input class="input-style id-input" maxlength="12" name="id">
+        </div>
+
+    </div>
+
+
+    <div class="back choose">
+
+        <div class="button-style">
+            <button class="host-btn">Host</button>
+            <div class="lines">
+                <div class="line line-up"></div>
+                <div class="line line-down"></div>
+                <div class="line line-left"></div>
+                <div class="line line-right"></div>
+            </div>
+        </div>
+
+        <div class="button-style">
+            <button class="code-btn">Join</button>
+            <div class="lines">
+                <div class="line line-up"></div>
+                <div class="line line-down"></div>
+                <div class="line line-left"></div>
+                <div class="line line-right" style="left: 289.5px"></div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="back host-page">
+        <span class="input-style code-value"></span>
+        <input class="input-style code-value code-copy" readonly>
+        <div class="copy">
+            <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                <path fill="#969696" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" />
+            </svg>
+        </div>
+    </div>
+
+
+    <div class="back join-page">
+        <span class="input-style hint" style="opacity: 0">The code doesn't exist</span>
+        <div class="code-container">
+            <h1 class="invite-text"></h1>
+            <input class="input-style code-send">
+        </div>
+    </div>
+
+
 </body>
 
 </html>
