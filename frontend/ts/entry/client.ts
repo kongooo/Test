@@ -1,6 +1,7 @@
-import '../css/test.scss';
-import { SendName, chooseDis, WordShow, WordDis } from './control/commit'
-import { copyShow, joinDis, SendCode, codeError, successAct } from './control/connect'
+import '../../css/UI.scss';
+import { SendName, chooseDis, WordShow, WordDis } from '../control/commit'
+import { copyShow, joinDis, SendCode, codeError, successAct } from '../control/connect'
+import { frameReady } from '../control/board'
 
 let path = 'ws://' + window.location.host + '/ws/transfer';
 
@@ -11,7 +12,7 @@ ws.onopen = () => {
 
 ws.onmessage = (mes) => {
     let val = JSON.parse(mes.data);
-    console.log(val);
+
     switch (val.type) {
 
         case 'code':
@@ -30,12 +31,13 @@ ws.onmessage = (mes) => {
 
         case 'connect':
 
-            if(val.connect=='fail'){
-                console.log('fail');
+            if (val.connect == 'fail') {
                 codeError();
             }
-            else if(val.connect=='success'){
+            else if (val.connect == 'success') {
                 successAct();
+                frameReady();
+
             }
 
             break;

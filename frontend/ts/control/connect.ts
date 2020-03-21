@@ -13,6 +13,7 @@ let copy_text = <HTMLInputElement>document.querySelector('.code-copy'),
     join_page = <HTMLDivElement>document.querySelector('.join-page');
 
 const invite_text = 'please input your invite code';
+const join_show_time = 30, join_dis_time = 50, host_dis_time = 50;
 
 let code_judge = false;
 
@@ -23,7 +24,7 @@ copy_btn.addEventListener('click', copy);
 function joinClick() {
     chooseDis();
     code_send.classList.add('send-show');
-    WordShow(invite_container, invite_text, 40, null);
+    WordShow(invite_container, invite_text, join_show_time, null);
     host_page.style.display = 'none';
 }
 
@@ -50,24 +51,25 @@ function joinDis() {
     join_page.style.display = 'none';
 }
 
-function hostDis(){
-    host_page.style.display='none';
-    copy_btn.style.pointerEvents='none';
+function hostDis() {
+    host_page.style.display = 'none';
+    copy_btn.style.pointerEvents = 'none';
     copy_btn.classList.remove('copy-shower');
 }
+
 
 function successAct() {
     if (join_page.style.display !== 'none') {
         code_judge = true;
         code_send.classList.add('send-dis');
-        WordDis(invite_container, 50, joinDis);
+        WordDis(invite_container, join_dis_time, joinDis);
     }
-    if(host_page.style.display!='none'){
+    if (host_page.style.display != 'none') {
 
-        code_span.style.display='flex';
-        copy_text.style.display='none';
+        code_span.style.display = 'flex';
+        copy_text.style.display = 'none';
 
-        WordDis(code_span, 20, hostDis);
+        WordDis(code_span, host_dis_time, hostDis);
     }
 }
 

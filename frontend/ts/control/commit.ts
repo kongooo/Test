@@ -7,8 +7,12 @@ let name_input = <HTMLInputElement>document.querySelector('.id-input'),
     start_page = <HTMLDivElement>document.querySelector('.homepage'),
     choose_page = <HTMLDivElement>document.querySelector('.choose');
 
-let move_distance = document.body.clientHeight / 2 + 100;
 let send_judge = false;
+const name_show_time = 50, name_dis_time = 40;
+
+function setShowDis(){
+    choose_page.style.bottom = document.body.clientHeight / 2 + 100 + 'px';
+}
 
 function WordShow(container: any, content: string, interval: number, action: () => void) {
     let index = 0;
@@ -60,13 +64,17 @@ function SendName(ws: any) {
                     }, 100);
                 }
                 else if (!send_judge) {
+                    setShowDis();
                     send_judge = true;
                     ws.send(JSON.stringify({ 'type': 'id', 'id': name_input.value }));
 
-                    WordDis(word_content, 50, wordDisAct);
+                    WordDis(word_content, name_dis_time, wordDisAct);
 
                     name_input.classList.add('input-dis');
-                    choose_page.classList.add('choose-show');
+
+                    setTimeout(() => {
+                        choose_page.classList.add('choose-show');    
+                    }, 1);
                 }
             }
         }
@@ -81,5 +89,4 @@ function chooseDis(){
 }
 
 
-WordShow(word_content, home_word, 50, null);
-choose_page.style.bottom = move_distance + 'px';
+WordShow(word_content, home_word, name_show_time, null);
