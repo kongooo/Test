@@ -1,6 +1,6 @@
 import '../../css/UI.scss';
-import { SendName, chooseDis, WordShow, idFocus} from '../control/commit'
-import { copyShow, joinDis, SendCode, codeError, successAct, sendHost, sendFocus } from '../control/connect'
+import { SendName, chooseDis, WordShow} from '../control/commit'
+import { copyShow, joinDis, SendCode, codeError, successAct, sendHost } from '../control/connect'
 import { frameReady, editable, gos, updateCurrentPoint, init } from '../control/board'
 
 let path = 'ws://' + window.location.host + '/ws/transfer';
