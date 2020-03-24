@@ -35,7 +35,7 @@ ws_route.get('/transfer', async function (ctx: any) {
                     let post_temp = new Hoster(client.Getws());
                     post_temp.SetID(client.GetID());
                     hosters.push(post_temp);
-                    post_temp.Getws().send(JSON.stringify({ 'type': 'code', 'code': post_temp.GetCode()}));
+                    post_temp.Getws().send(JSON.stringify({ 'type': 'code', 'code': post_temp.GetCode() }));
                     clients.splice(clients.indexOf(client), 1);
                     break;
 
@@ -57,12 +57,23 @@ ws_route.get('/transfer', async function (ctx: any) {
                             let connect = new ClientSocket(hoster, joiner);
 
                             connect.GetPoster().Getws().on('message', function (mes: any) {
-                                let data = JSON.parse(mes).data;
-                                connect.GetReceiver().Getws().send(data);
+                                switch (JSON.parse(mes).type) {
+                                    case 'data':
+                                        let x = JSON.parse(mes).PointX,
+                                            y = JSON.parse(mes).PointY;
+                                        connect.GetReceiver().Getws().send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
+                                        break;
+                                }
+
                             });
                             connect.GetReceiver().Getws().on('message', function (mes: any) {
-                                let data = JSON.parse(mes).data;
-                                connect.GetPoster().Getws().send(data);
+                                switch (JSON.parse(mes).type) {
+                                    case 'data':
+                                        let x = JSON.parse(mes).PointX,
+                                            y = JSON.parse(mes).PointY;
+                                        connect.GetPoster().Getws().send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
+                                        break;
+                                }
                             })
 
                             connects.push(connect);

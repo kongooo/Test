@@ -1,14 +1,12 @@
 import '../../css/UI.scss';
-import { SendName, chooseDis, WordShow, WordDis } from '../control/commit'
-import { copyShow, joinDis, SendCode, codeError, successAct } from '../control/connect'
-import { frameReady } from '../control/board'
+import { SendName, chooseDis, WordShow, idFocus} from '../control/commit'
+import { copyShow, joinDis, SendCode, codeError, successAct, sendHost, sendFocus } from '../control/connect'
+import { frameReady, editable, gos, updateCurrentPoint, init } from '../control/board'
 
 let path = 'ws://' + window.location.host + '/ws/transfer';
 
 let ws = new WebSocket(path);
-ws.onopen = () => {
-    console.log('client open!');
-}
+let color: boolean;
 
 ws.onmessage = (mes) => {
     let val = JSON.parse(mes.data);
@@ -35,10 +33,27 @@ ws.onmessage = (mes) => {
                 codeError();
             }
             else if (val.connect == 'success') {
-                successAct();
-                frameReady();
-
+                color = successAct();
+                frameReady(ws, color);
             }
+
+            break;
+
+        case 'data':
+            let x = val.PointX, y = val.PointY;
+            editable[y][x] = false;
+
+            if (!color) {
+                //black
+                gos[y][x].style.backgroundColor = '#414141';
+            }
+            else {
+                //white
+                gos[y][x].style.backgroundColor = 'white';
+                gos[y][x].style.border = '1px solid #414141';
+            }
+            updateCurrentPoint(x, y);
+            (<HTMLDivElement>document.querySelector('.keep-out')).style.zIndex = '0';
 
             break;
     }
@@ -48,17 +63,11 @@ ws.onerror = (err) => {
     console.log(err);
 }
 
-function send(mes: string) {
-    ws.send(JSON.stringify({ 'data': mes }));
-}
-
+init();
 SendName(ws);
 SendCode(ws);
+sendHost(ws);
 
-document.querySelector('.host-btn').addEventListener('click', event => {
-    ws.send(JSON.stringify({ 'type': 'host' }));
-});
 
-(window as any).send = send;
 
 

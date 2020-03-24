@@ -1,6 +1,6 @@
 import { WordShow, WordDis, chooseDis } from './commit'
 
-export { copyShow, joinDis, SendCode, codeError, successAct };
+export { copyShow, joinDis, SendCode, codeError, successAct, sendHost };
 
 let copy_text = <HTMLInputElement>document.querySelector('.code-copy'),
     code_span = <HTMLSpanElement>document.querySelector('.code-value'),
@@ -10,7 +10,8 @@ let copy_text = <HTMLInputElement>document.querySelector('.code-copy'),
     code_send = <HTMLInputElement>document.querySelector('.code-send'),
     host_page = <HTMLDivElement>document.querySelector('.host-page'),
     hint = <HTMLSpanElement>document.querySelector('.hint'),
-    join_page = <HTMLDivElement>document.querySelector('.join-page');
+    join_page = <HTMLDivElement>document.querySelector('.join-page'),
+    host_btn = <HTMLDivElement>document.querySelector('.host-btn');
 
 const invite_text = 'please input your invite code';
 const join_show_time = 30, join_dis_time = 50, host_dis_time = 50;
@@ -63,6 +64,10 @@ function successAct() {
         code_judge = true;
         code_send.classList.add('send-dis');
         WordDis(invite_container, join_dis_time, joinDis);
+
+        (<HTMLDivElement>document.querySelector('.keep-out')).style.zIndex = '2';
+
+        return false;
     }
     if (host_page.style.display != 'none') {
 
@@ -70,7 +75,16 @@ function successAct() {
         copy_text.style.display = 'none';
 
         WordDis(code_span, host_dis_time, hostDis);
+
+        (<HTMLDivElement>document.querySelector('.keep-out')).style.zIndex = '0';
+        return true;
     }
+}
+
+function sendHost(ws: any) {
+    host_btn.addEventListener('click', () => {
+        ws.send(JSON.stringify({ 'type': 'host' }));
+    })
 }
 
 function SendCode(ws: any) {

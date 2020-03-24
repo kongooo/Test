@@ -9,7 +9,7 @@ $border-color: #6e6e6e;
 $go_black_color: black;
 html {
     height: 100%;
-    min-height: 414px;
+    // min-height: 414px;
 }
 
 body {
@@ -296,6 +296,8 @@ button:hover+.lines>.line-right {
     left: -(1/36)*100%;
     right: -(1/36)*100%;
     margin-left: 1px;
+    display: flex;
+    flex-wrap: wrap;
 }
 
 .go-back {
@@ -316,6 +318,21 @@ button:hover+.lines>.line-right {
     position: absolute;
     background-color: transparent;
     border-radius: 100%;
+    transition: 0.5s linear background-color;
+    box-sizing: border-box;
+    animation: 0.5s linear 0 hint;
+    animation-direction: alternate;
+    animation-iteration-count: infinite;
+    animation-play-state: paused;
+}
+
+@keyframes hint {
+    from {
+        transform: scale(1);
+    }
+    to {
+        transform: scale(1.2);
+    }
 }
 
 .go-back:hover .go {
@@ -350,10 +367,15 @@ button:hover+.lines>.line-right {
     display: block;
     opacity: 0;
     transition: 1s linear opacity;
+    z-index: -1;
 }
 
 .go-show::before {
     opacity: 1;
+}
+
+.go-dis::before {
+    display: none;
 }
 
 .keep {
@@ -381,4 +403,86 @@ button:hover+.lines>.line-right {
 .keep-bottom {
     bottom: 0;
     width: 100%;
+}
+
+.keep-out {
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    position: fixed;
+    z-index: 1;
+}
+
+$go-black: #414141;
+$go-size: 20%;
+.load {
+    background-color: $bg-color;
+    transition: 0.5s linear opacity;
+    opacity: 1;
+    z-index: 10;
+}
+
+.load-anima {
+    opacity: 0;
+}
+
+.go-frame {
+    height: 100px;
+    width: 100px;
+    background-color: transparent;
+    position: relative;
+}
+
+.white-back {
+    right: -25px;
+    animation: 2s linear 0 white-anima;
+    animation-iteration-count: infinite;
+    animation-play-state: running;
+}
+
+@keyframes white-anima {
+    0% {
+        transform: rotate(0);
+    }
+    50% {
+        transform: rotate(-180deg);
+    }
+    100% {
+        transform: rotate(-360deg);
+    }
+}
+
+.black-back {
+    left: -25px;
+    animation: 2s linear 0 black-anima;
+    animation-iteration-count: infinite;
+    animation-play-state: running;
+}
+
+@keyframes black-anima {
+    0% {
+        transform: rotate(0);
+    }
+    50% {
+        transform: rotate(180deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.anima-go {
+    width: $go-size;
+    height: $go-size;
+    border-radius: 100%;
+}
+
+.white-go {
+    background-color: white;
+    box-sizing: border-box;
+    border: 1px solid #414141;
+}
+
+.black-go {
+    background-color: $go-black;
 }

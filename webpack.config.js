@@ -5,8 +5,7 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 module.exports = {
     entry: {
         client: './frontend/ts/entry/client.ts',
-        draw: './frontend/ts/entry/draw.ts',
-        set: './frontend/set.js'
+        loading: './frontend/ts/entry/loading.ts'
     },
     output: {
         filename: '[name].bundle.js',

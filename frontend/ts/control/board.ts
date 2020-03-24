@@ -1,4 +1,4 @@
-export { init, frameReady }
+export { init, frameReady, editable, gos, updateCurrentPoint }
 
 let board_container = <HTMLDivElement>document.querySelector('.board-container'),
     frames = document.querySelectorAll('.frame'),
@@ -6,7 +6,6 @@ let board_container = <HTMLDivElement>document.querySelector('.board-container')
     pieces_board = <HTMLDivElement>document.querySelector('.pieces-board'),
     board_back_color = <HTMLDivElement>document.querySelector('.board-back-color'),
     keeps = document.querySelectorAll('.keep');
-// signs = <HTMLDivElement>document.querySelector('.signs');
 
 const grid_count = 18, ratio = 0.9, back_color_ratio = 963 / 1000;
 
@@ -18,11 +17,13 @@ let xScale = (W - (1 - ratio) * H) / grid_width, yScale = grid_count;
 let xTrans = grid_width / 2 - 0.003 * xScale, yTrans = grid_width / 2 - 0.01 * yScale;
 let xS = xScale - 1, yS = yScale - 1, xT = xTrans, yT = yTrans;
 
-let timer = 0, timing = 2, scroll_speed = 0.01;
+let timer = 0, timing = 2, scroll_speed = 0.03;
 
 let signs: HTMLDivElement[] = [];
+let editable: boolean[][] = new Array<Array<boolean>>();
+let gos: HTMLDivElement[][] = new Array<Array<HTMLDivElement>>();
 
-let scale_judge = true;
+let current_x = -1, current_y = -1;
 
 function init() {
     board_container.style.display = 'none';
@@ -30,9 +31,75 @@ function init() {
     onFrameChange();
 }
 
-function initPieces() {
+function updateSigns(x: number, y: number) {
+    let index = -1;
+    switch (y) {
+        case 3:
+            switch (x) {
+                case 3:
+                    index = 0
+                    break;
+                case 9:
+                    index = 1;
+                    break;
+                case 15:
+                    index = 2;
+                    break;
+            }
+            break;
+        case 9:
+            switch (x) {
+                case 3:
+                    index = 3;
+                    break;
+                case 9:
+                    index = 4;
+                    break;
+                case 15:
+                    index = 5;
+                    break;
+            }
+            break;
+        case 15:
+            switch (x) {
+                case 3:
+                    index = 6;
+                    break;
+                case 9:
+                    index = 7;
+                    break;
+                case 15:
+                    index = 8;
+                    break;
+            }
+            break;
+    }
+    signs[index].classList.add('go-dis');
+}
+
+function updateCurrentPoint(x: number, y: number) {
+    if (y == 3 || y == 9 || y == 15) {
+        if (x == 3 || x == 9 || x == 15) {
+            updateSigns(x, y);
+        }
+    }
+    if (current_x != -1 && current_y != -1) {
+        gos[current_y][current_x].style.animation = 'none';
+        gos[current_y][current_x].style.transform = 'scale(1)';
+    }
+    current_x = x;
+    current_y = y;
+    gos[current_y][current_x].style.animationPlayState = 'running';
+}
+
+function initPieces(ws: any, color: boolean) {
     for (let y = 0; y < grid_count + 1; y++) {
+
+        gos[y] = new Array();
+        editable[y] = new Array();
+
         for (let x = 0; x < grid_count + 1; x++) {
+            editable[y][x] = true;
             let newGo = document.createElement('div');
             newGo.classList.add('go');
             if (y == 3 || y == 9 || y == 15) {
@@ -45,9 +112,33 @@ function initPieces() {
             newGoBack.classList.add('go-back');
             newGoBack.appendChild(newGo);
             pieces_board.appendChild(newGoBack);
+
+            gos[y][x] = newGo;
+
+            let click_judge = true;
+            newGoBack.addEventListener('click', e => {
+                if (click_judge && editable[y][x]) {
+                    click_judge = false;
+                    if (color) {
+                        //black
+                        newGo.style.backgroundColor = '#414141';
+                    }
+                    else {
+                        //white
+                        newGo.style.backgroundColor = 'white';
+                        newGo.style.border = '1px solid #414141';
+                    }
+                    updateCurrentPoint(x, y);
+                    (<HTMLDivElement>document.querySelector('.keep-out')).style.zIndex = '2';
+                    ws.send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
+                }
+            })
         }
 
     }
+
+    boardShow();
+    showKeeps();
 }
 
 
@@ -75,16 +166,6 @@ function setBoardSize() {
     setSize(ratio, board_container);
     setSize(back_color_ratio, board_back_color);
     updateKeeps();
-    // if (document.body.clientHeight <= 414) {
-    //     scale_judge = false;
-    //     console.log('stop');
-    //     DisKeeps();
-    //     board_container.style.transform='scale(1)';
-    // }
-    // else {
-    //     scale_judge = true;
-    //     showKeeps();
-    // }
 }
 
 function getLeftDis() {
@@ -96,13 +177,13 @@ function getTopDis() {
 }
 
 //before anima
-function frameReady() {
+function frameReady(ws: any, color: boolean) {
     frames_parent.style.display = 'none';
     board_container.style.display = 'block';
     setBoardSize();
     updateFrame();
     board_zoom(xScale, yScale, xTrans, yTrans);
-    zoom();
+    zoom(ws, color);
 }
 
 function frameChange() {
@@ -117,12 +198,6 @@ function frameChange() {
 function showKeeps() {
     keeps.forEach(k => {
         (<HTMLDivElement>k).style.display = 'block';
-    });
-}
-
-function DisKeeps() {
-    keeps.forEach(k => {
-        (<HTMLDivElement>k).style.display = 'none';
     });
 }
 
@@ -185,7 +260,7 @@ function boardShow() {
     })
 }
 
-function zoom() {
+function zoom(ws: any, color: boolean) {
     let container = getDisContainer();
     let rat = 0;
     function zoomer() {
@@ -196,18 +271,15 @@ function zoom() {
         board_zoom(xS + 1, yS + 1, xT, yT);
         if (timer >= timing) {
             onBoardChange();
-            // signs.classList.add('signs-show');
             clearInterval(board_id);
             resetBoard();
 
-            initPieces();
-
-            boardShow();
-            showKeeps();
+            initPieces(ws, color);
         }
     }
     let board_id = setInterval(zoomer, 10);
 }
+
 
 function board_zoom(xScale: number, yScale: number, xTrans: number, yTrans: number) {
     board_container.style.transform = 'scale(' + xScale + ',' + yScale + ') translate(' + xTrans + 'px, ' + yTrans + 'px)';
@@ -235,5 +307,4 @@ board_container.onwheel = e => {
     }
     board_container.style.transformOrigin = origin_x + 'px ' + origin_y + 'px';
     board_container.style.transform = 'scale(' + scale_rat + ')';
-
 }
