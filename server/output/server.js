@@ -52,7 +52,7 @@ ws_route.get('/transfer', async function (ctx) {
                                 }
                             });
                             connect.GetReceiver().Getws().on('message', function (mes) {
-                                let state = connect.GetReceiver().Getws().readyState;
+                                let state = connect.GetPoster().Getws().readyState;
                                 if (state == 1) {
                                     switch (JSON.parse(mes).type) {
                                         case 'data':
