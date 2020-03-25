@@ -3,7 +3,7 @@ import { SendName, chooseDis, WordShow} from '../control/commit'
 import { copyShow, joinDis, SendCode, codeError, successAct, sendHost } from '../control/connect'
 import { frameReady, editable, gos, updateCurrentPoint, init } from '../control/board'
 
-let path = 'wss://' + window.location.host + '/ws/transfer';
+let path = 'ws://' + window.location.host + '/ws/transfer';
 
 let ws = new WebSocket(path);
 let color: boolean;

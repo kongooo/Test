@@ -57,23 +57,30 @@ ws_route.get('/transfer', async function (ctx: any) {
                             let connect = new ClientSocket(hoster, joiner);
 
                             connect.GetPoster().Getws().on('message', function (mes: any) {
-                                switch (JSON.parse(mes).type) {
-                                    case 'data':
-                                        let x = JSON.parse(mes).PointX,
-                                            y = JSON.parse(mes).PointY;
-                                        connect.GetReceiver().Getws().send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
-                                        break;
+                                let state = connect.GetReceiver().Getws().readyState;
+                                if (state == 1) {
+                                    switch (JSON.parse(mes).type) {
+                                        case 'data':
+                                            let x = JSON.parse(mes).PointX,
+                                                y = JSON.parse(mes).PointY;
+                                            connect.GetReceiver().Getws().send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
+                                            break;
+                                    }
                                 }
 
                             });
                             connect.GetReceiver().Getws().on('message', function (mes: any) {
-                                switch (JSON.parse(mes).type) {
-                                    case 'data':
-                                        let x = JSON.parse(mes).PointX,
-                                            y = JSON.parse(mes).PointY;
-                                        connect.GetPoster().Getws().send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
-                                        break;
+                                let state = connect.GetReceiver().Getws().readyState;
+                                if (state == 1) {
+                                    switch (JSON.parse(mes).type) {
+                                        case 'data':
+                                            let x = JSON.parse(mes).PointX,
+                                                y = JSON.parse(mes).PointY;
+                                            connect.GetPoster().Getws().send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
+                                            break;
+                                    }
                                 }
+
                             })
 
                             connects.push(connect);
@@ -95,8 +102,38 @@ ws_route.get('/transfer', async function (ctx: any) {
         });
 
         clients.push(client);
+        clearClients();
+        clearHosters();
+        clearConnects();
     }
 })
+
+function clearConnects() {
+    let index = 0;
+    connects.forEach(c => {
+        if (c.GetPoster().Getws().readyState == 3 || c.GetReceiver().Getws().readyState == 3)
+            connects.splice(index, 1);
+        index++;
+    })
+}
+
+function clearHosters() {
+    let index = 0;
+    hosters.forEach(c => {
+        if (c.Getws().readyState == 3)
+            hosters.splice(index, 1);
+        index++;
+    });
+}
+
+function clearClients() {
+    let index = 0;
+    clients.forEach(c => {
+        if (c.Getws().readyState == 3)
+            clients.splice(index, 1);
+        index++;
+    });
+}
 
 main_route.use('/ws', ws_route.routes(), ws_route.allowedMethods());
 
