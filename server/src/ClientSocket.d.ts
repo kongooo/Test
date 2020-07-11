@@ -21,4 +21,6 @@ declare class ClientSocket {
     constructor(hs: Hoster, jn: Joiner);
     GetPoster(): Hoster;
     GetReceiver(): Joiner;
+    setPoster(hoster: Hoster): void;
+    setReceiver(receiver: Joiner): void;
 }

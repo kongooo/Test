@@ -25,8 +25,8 @@ export function GetRandomCode() {
         else
             if (--index >= 0)
                 code += time_code[index];
-        if(i%4===0)
-        code+='-';
+        if (i % 4 === 0)
+            code += '-';
     }
     return code;
 }

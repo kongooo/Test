@@ -1,4 +1,4 @@
-import {GetRandomCode} from './RandomCode'
+import { GetRandomCode } from './RandomCode'
 export { Client, Hoster, Joiner, ClientSocket };
 
 
@@ -56,6 +56,14 @@ class ClientSocket {
 
     GetReceiver() {
         return this.receiver;
+    }
+
+    setPoster(hoster: Hoster) {
+        this.poster = hoster;
+    }
+
+    setReceiver(receiver: Joiner) {
+        this.receiver = receiver;
     }
 }
 

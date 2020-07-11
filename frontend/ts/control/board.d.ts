@@ -1,6 +1,10 @@
-export { init, frameReady, editable, gos, updateCurrentPoint };
+export { init, frameReady, editable, gos, sending, updateCurrentPoint, setWebsocket, getCurrentPos, setRecon };
 declare let editable: boolean[][];
 declare let gos: HTMLDivElement[][];
+declare let sending: boolean;
 declare function init(): void;
+declare function setWebsocket(socket: WebSocket): void;
+declare function setRecon(reconnect: any): void;
 declare function updateCurrentPoint(x: number, y: number): void;
-declare function frameReady(ws: any, color: boolean): void;
+declare function getCurrentPos(): number[];
+declare function frameReady(color: boolean): void;

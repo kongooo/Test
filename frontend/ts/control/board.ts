@@ -1,4 +1,4 @@
-export { init, frameReady, editable, gos, updateCurrentPoint }
+export { init, frameReady, editable, gos, sending, updateCurrentPoint, setWebsocket, getCurrentPos, setRecon }
 
 let board_container = <HTMLDivElement>document.querySelector('.board-container'),
     frames = document.querySelectorAll('.frame'),
@@ -25,10 +25,22 @@ let gos: HTMLDivElement[][] = new Array<Array<HTMLDivElement>>();
 
 let current_x = -1, current_y = -1;
 
+let ws: WebSocket;
+let recon: any;
+let sending: boolean;
+
 function init() {
     board_container.style.display = 'none';
     frameChange();
     onFrameChange();
+}
+
+function setWebsocket(socket: WebSocket) {
+    ws = socket;
+}
+
+function setRecon(reconnect: any) {
+    recon = reconnect;
 }
 
 function updateSigns(x: number, y: number) {
@@ -92,7 +104,7 @@ function updateCurrentPoint(x: number, y: number) {
     gos[current_y][current_x].style.animationPlayState = 'running';
 }
 
-function initPieces(ws: any, color: boolean) {
+function initPieces(color: boolean) {
     for (let y = 0; y < grid_count + 1; y++) {
 
         gos[y] = new Array();
@@ -130,17 +142,30 @@ function initPieces(ws: any, color: boolean) {
                     }
                     updateCurrentPoint(x, y);
                     (<HTMLDivElement>document.querySelector('.keep-out')).style.zIndex = '2';
-                    ws.send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
+                    try {
+                        if (ws.readyState == 1) {
+                            sending = true;
+                            ws.send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
+                        }
+                        else sending = false;
+                    } catch (e) {
+                        sending = false;
+                        console.log(e);
+                        recon();
+                    }
+
                 }
             })
         }
-
     }
 
     boardShow();
     showKeeps();
 }
 
+function getCurrentPos() {
+    return [current_x, current_y];
+}
 
 function setSize(proportion: number, box: HTMLDivElement) {
     if (document.body.clientWidth >= document.body.clientHeight) {
@@ -177,13 +202,13 @@ function getTopDis() {
 }
 
 //before anima
-function frameReady(ws: any, color: boolean) {
+function frameReady(color: boolean) {
     frames_parent.style.display = 'none';
     board_container.style.display = 'block';
     setBoardSize();
     updateFrame();
     board_zoom(xScale, yScale, xTrans, yTrans);
-    zoom(ws, color);
+    zoom(color);
 }
 
 function frameChange() {
@@ -260,7 +285,7 @@ function boardShow() {
     })
 }
 
-function zoom(ws: any, color: boolean) {
+function zoom(color: boolean) {
     let container = getDisContainer();
     let rat = 0;
     function zoomer() {
@@ -274,7 +299,7 @@ function zoom(ws: any, color: boolean) {
             clearInterval(board_id);
             resetBoard();
 
-            initPieces(ws, color);
+            initPieces(color);
         }
     }
     let board_id = setInterval(zoomer, 10);

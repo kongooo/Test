@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ClientSocket = exports.Joiner = exports.Hoster = exports.Client = void 0;
 const RandomCode_1 = require("./RandomCode");
 class Client {
     constructor(ws) {
@@ -42,6 +43,12 @@ class ClientSocket {
     }
     GetReceiver() {
         return this.receiver;
+    }
+    setPoster(hoster) {
+        this.poster = hoster;
+    }
+    setReceiver(receiver) {
+        this.receiver = receiver;
     }
 }
 exports.ClientSocket = ClientSocket;

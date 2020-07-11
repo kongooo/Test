@@ -16,7 +16,7 @@ const main = serve(temp_path);
 const ws_route = new router();
 const main_route = new router();
 
-let clients: Client[] = new Array(), hosters: Hoster[] = new Array(), connects: ClientSocket[] = new Array();
+let clients: Client[] = new Array(), connects: ClientSocket[] = new Array(), connectMap = new Map(), hosterMap = new Map();
 
 ws_route.get('/transfer', async function (ctx: any) {
     if (ctx.ws) {
@@ -34,8 +34,12 @@ ws_route.get('/transfer', async function (ctx: any) {
                 case 'host':
                     let post_temp = new Hoster(client.Getws());
                     post_temp.SetID(client.GetID());
-                    hosters.push(post_temp);
-                    post_temp.Getws().send(JSON.stringify({ 'type': 'code', 'code': post_temp.GetCode() }));
+                    try {
+                        post_temp.Getws().send(JSON.stringify({ 'type': 'code', 'code': post_temp.GetCode() }));
+                    } catch (e) {
+                        console.log(e);
+                    }
+                    hosterMap.set(post_temp.GetCode(), post_temp);
                     clients.splice(clients.indexOf(client), 1);
                     break;
 
@@ -45,68 +49,128 @@ ws_route.get('/transfer', async function (ctx: any) {
 
                 case 'code':
 
-                    let exist = false;
+                    if (hosterMap.has(val.code)) {
+                        let hoster = hosterMap.get(val.code);
+                        hosterMap.delete(val.code);
 
-                    hosters.forEach(hoster => {
+                        let joiner = <Joiner>client;
+                        let connect = new ClientSocket(hoster, joiner);
 
-                        if (hoster.GetCode() == val.code) {
+                        connectMap.set(hoster.GetCode(), connect);
 
-                            exist = true;
+                        setConnect(connect);
 
-                            let joiner = <Joiner>client;
-                            let connect = new ClientSocket(hoster, joiner);
+                        connects.push(connect);
 
-                            connect.GetPoster().Getws().on('message', function (mes: any) {
-                                let state = connect.GetReceiver().Getws().readyState;
-                                if (state == 1) {
-                                    switch (JSON.parse(mes).type) {
-                                        case 'data':
-                                            let x = JSON.parse(mes).PointX,
-                                                y = JSON.parse(mes).PointY;
-                                            connect.GetReceiver().Getws().send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
-                                            break;
-                                    }
-                                }
+                        clients.splice(clients.indexOf(client), 1);
 
-                            });
-                            connect.GetReceiver().Getws().on('message', function (mes: any) {
-                                let state = connect.GetPoster().Getws().readyState;
-                                if (state == 1) {
-                                    switch (JSON.parse(mes).type) {
-                                        case 'data':
-                                            let x = JSON.parse(mes).PointX,
-                                                y = JSON.parse(mes).PointY;
-                                            connect.GetPoster().Getws().send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
-                                            break;
-                                    }
-                                }
-
-                            })
-
-                            connects.push(connect);
-
-                            hosters.splice(hosters.indexOf(hoster), 1);
-                            clients.splice(clients.indexOf(client), 1);
-
-                            hoster.Getws().send(JSON.stringify({ 'type': 'connect', 'connect': 'success' }));
-                            joiner.Getws().send(JSON.stringify({ 'type': 'connect', 'connect': 'success' }));
+                        try {
+                            hoster.Getws().send(JSON.stringify({ 'type': 'connect', 'connect': 'success', 'pcode': val.code }));
+                            joiner.Getws().send(JSON.stringify({ 'type': 'connect', 'connect': 'success', 'pcode': val.code }));
+                        } catch (e) {
+                            console.log(e);
                         }
-                    });
 
-                    if (!exist) {
-                        client.Getws().send(JSON.stringify({ 'type': 'connect', 'connect': 'fail' }));
+                    } else {
+                        try {
+                            client.Getws().send(JSON.stringify({ 'type': 'connect', 'connect': 'fail' }));
+                        } catch (e) {
+                            console.log(e);
+                        }
                     }
 
+                    break;
+
+                case 'reconnect':
+                    if (connectMap.has(val.pcode)) {
+                        let con = connectMap.get(val.pcode);
+                        if (val.name === 'hoster')
+                            con.setPoster(new Hoster(client.Getws()));
+                        else if (val.name === 'joiner')
+                            con.setReceiver(<Joiner>client);
+
+                        clients.splice(clients.indexOf(client), 1);
+
+                        if (con.GetPoster().Getws().readyState === 1 && con.GetReceiver().Getws().readyState === 1) {
+                            setConnect(con);
+                        }
+                    }
                     break;
             }
         });
 
         clients.push(client);
         clearClients();
-        clearHosters();
         clearConnects();
+        clearHosterMaps();
+        clearConnectMaps();
     }
 })
+
+function setConnect(connect: ClientSocket) {
+    let poster = connect.GetPoster().Getws(), receiver = connect.GetReceiver().Getws();
+    poster.on('message', function (mes: any) {
+        let state = receiver.readyState;
+        switch (JSON.parse(mes).type) {
+            case 'data':
+                let x = JSON.parse(mes).PointX,
+                    y = JSON.parse(mes).PointY;
+                try {
+                    if (state == 1)
+                        receiver.send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
+                    // else
+                    //     poster.close();
+                } catch (e) {
+                    console.log(e);
+                }
+                break;
+        }
+    });
+
+    receiver.on('close', function (e: any) {
+        console.log('poster close');
+    });
+
+
+    receiver.on('message', function (mes: any) {
+        let state = poster.readyState;
+        switch (JSON.parse(mes).type) {
+            case 'data':
+                let x = JSON.parse(mes).PointX,
+                    y = JSON.parse(mes).PointY;
+                try {
+                    if (state == 1)
+                        poster.send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
+                    // else
+                    //     receiver.close();
+                } catch (e) {
+                    console.log(e);
+                }
+                break;
+        }
+    })
+
+    receiver.on('close', function (e: any) {
+        console.log('receiver close');
+    });
+}
+
+function clearHosterMaps() {
+    hosterMap.forEach((v, k) => {
+        if (v.Getws().readyState === 3) hosterMap.delete(k);
+    })
+}
+
+function clearConnectMaps() {
+    connectMap.forEach((v, k) => {
+        let hoster = v.GetPoster().Getws(), receiver = v.GetReceiver().Getws();
+        if (hoster.readyState === 3 && receiver.readyState === 3) {
+            setTimeout(() => {
+                connectMap.delete(k);
+            }, 3600000);
+        }
+    })
+}
 
 function clearConnects() {
     let index = 0;
@@ -115,15 +179,6 @@ function clearConnects() {
             connects.splice(index, 1);
         index++;
     })
-}
-
-function clearHosters() {
-    let index = 0;
-    hosters.forEach(c => {
-        if (c.Getws().readyState == 3)
-            hosters.splice(index, 1);
-        index++;
-    });
 }
 
 function clearClients() {

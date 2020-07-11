@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.GetRandomCode = void 0;
 function GetRandomNum(min, max) {
     return Math.round(Math.random() * (max - min) + min);
 }
