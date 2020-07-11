@@ -132,9 +132,18 @@ function setClient(poster: any, receiver: any) {
                 if (!poster.findPoint(x, y)) {
                     try {
                         if (state == 1) {
+                            poster.addPoint(x, y);
+
+                            receiver.setAck(false);
                             receiver.Getws().send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
                             receiver.addPoint(x, y);
-                            poster.addPoint(x, y);
+                            let id = setInterval(() => {
+                                if(!receiver.getAck()){
+                                    receiver.Getws().send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
+                                }else 
+                                    clearInterval(id);
+                            }, 5000);
+                            
                         } else {
                             if (poster.Getws().readyState === 1) poster.Getws().send(JSON.stringify({ 'type': 'again' }));
                         }
@@ -152,6 +161,9 @@ function setClient(poster: any, receiver: any) {
                 } catch (e) {
                     console.log(e);
                 }
+                break;
+            case 'ack':
+                receiver.setAck(true);
                 break;
         }
     });

@@ -3,7 +3,7 @@ import { SendName, chooseDis, WordShow } from '../control/commit'
 import { copyShow, joinDis, SendCode, codeError, successAct, sendHost } from '../control/connect'
 import { frameReady, editable, gos, updateCurrentPoint, init, setWebsocket, getCurrentPos, setRecon } from '../control/board'
 
-let path = 'wss://' + window.location.host + '/ws/transfer';
+let path = 'ws://' + window.location.host + '/ws/transfer';
 
 let ws = new WebSocket(path);
 let color: boolean;
@@ -59,6 +59,7 @@ ws.onmessage = (mes) => {
             }
             updateCurrentPoint(x, y);
             (<HTMLDivElement>document.querySelector('.keep-out')).style.zIndex = '0';
+            sendFunc(JSON.stringify({ 'type': 'ack' }));
 
             break;
         case 'pong':
@@ -70,12 +71,13 @@ ws.onmessage = (mes) => {
 
 function reconnect() {
     console.log('reconnect type: ' + type);
-    try{
+    try {
         ws = new WebSocket(path);
-    }catch(e){
+    } catch (e) {
         console.log(e);
         ws.close();
     }
+    if (ws.readyState === 2 || ws.readyState === 3) { ws.close(); return; }
     setWebsocket(ws);
     ws.onmessage = (mes) => {
         let val = JSON.parse(mes.data);
@@ -96,19 +98,13 @@ function reconnect() {
                 }
                 updateCurrentPoint(x, y);
                 (<HTMLDivElement>document.querySelector('.keep-out')).style.zIndex = '0';
-
+                sendFunc(JSON.stringify({ 'type': 'ack' }));
                 break;
             case 'again':
-                try {
-                    setTimeout(() => {
-                        ws.send(JSON.stringify({ 'type': 'data', 'PointX': getCurrentPos()[0], 'PointY': getCurrentPos()[1] }));
-                    }, 1000);
-                } catch (e) {
-                    console.log(e);
-                }
+                sendFunc(JSON.stringify({ 'type': 'data', 'PointX': getCurrentPos()[0], 'PointY': getCurrentPos()[1] }));
                 break;
             case 'reconnect':
-                ws.send(JSON.stringify({ 'type': 'data', 'PointX': getCurrentPos()[0], 'PointY': getCurrentPos()[1] }));
+                sendFunc(JSON.stringify({ 'type': 'data', 'PointX': getCurrentPos()[0], 'PointY': getCurrentPos()[1] }))
                 break;
         }
     }
@@ -122,12 +118,7 @@ function reconnect() {
     }
 
     ws.onopen = e => {
-        try {
-            ws.send(JSON.stringify({ 'type': 'reconnect', 'pcode': code_val, 'name': type }));
-        } catch (e) {
-            console.log(e);
-            reconnect();
-        }
+        sendFunc(JSON.stringify({ 'type': 'reconnect', 'pcode': code_val, 'name': type }))
     }
 }
 
@@ -144,12 +135,23 @@ ws.onclose = e => {
     closeAct();
 }
 
-function closeAct(){
+function closeAct() {
     reconnect();
 }
 
 function close() {
     ws.close();
+}
+
+function sendFunc(data: string) {
+    try {
+        if (ws.readyState === 1)
+            ws.send(data);
+        else ws.close();
+    } catch (e) {
+        console.log(e);
+        ws.close();
+    }
 }
 
 init();

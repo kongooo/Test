@@ -6,6 +6,7 @@ class Client {
     private ws: any;
     private id: string;
     private points: Set<number>;
+    private ack: boolean;
     constructor(ws: any) {
         this.ws = ws;
         this.points = new Set();
@@ -41,6 +42,14 @@ class Client {
 
     getPoints() {
         return this.points;
+    }
+
+    setAck(a: boolean) {
+        this.ack = a;
+    }
+
+    getAck() {
+        return this.ack;
     }
 }
 

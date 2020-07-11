@@ -31,6 +31,12 @@ class Client {
     getPoints() {
         return this.points;
     }
+    setAck(a) {
+        this.ack = a;
+    }
+    getAck() {
+        return this.ack;
+    }
 }
 exports.Client = Client;
 class Hoster extends Client {
