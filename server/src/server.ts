@@ -129,48 +129,26 @@ function setClient(poster: any, receiver: any) {
             case 'data':
                 let x = JSON.parse(mes).PointX,
                     y = JSON.parse(mes).PointY;
-
-                if (!poster.findPoint(x, y)) {
-                    try {
-                        if (state == 1) {
-                            poster.addPoint(x, y);
-
-                            receiver.setAck(false);
-                            receiver.Getws().send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
-                            receiver.addPoint(x, y);
-                            let id = setInterval(() => {
-                                if (!receiver.getAck()) {
-                                    console.log('acking-------------');
-                                    if (receiver.Getws().readyState === 1)
-                                        receiver.Getws().send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
-                                    else{
-                                        receiver.Getws().close();
-                                        clearInterval(id);
-                                    }
-                                } else
-                                    clearInterval(id);
-                            }, 5000);
-
-                        } else {
-                            if (poster.Getws().readyState === 1) poster.Getws().send(JSON.stringify({ 'type': 'again' }));
-                        }
-                    } catch (e) {
-                        console.log(e);
-                    }
-                }
-
-                break;
-            case 'ping':
                 try {
                     if (state == 1) {
-                        receiver.Getws().send(JSON.stringify({ 'type': 'pong' }));
+                        receiver.Getws().send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
                     }
                 } catch (e) {
                     console.log(e);
                 }
                 break;
+            // case 'ping':
+            //     try {
+            //         if (state == 1) {
+            //             receiver.Getws().send(JSON.stringify({ 'type': 'pong' }));
+            //         }
+            //     } catch (e) {
+            //         console.log(e);
+            //     }
+            //     break;
             case 'ack':
-                receiver.setAck(true);
+                if (receiver.Getws().readyState === 1)
+                    receiver.Getws().send(JSON.stringify({ 'type': 'ack' }));
                 break;
         }
     });

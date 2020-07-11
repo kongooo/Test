@@ -1,4 +1,6 @@
-export { init, frameReady, editable, gos, updateCurrentPoint, setWebsocket, getCurrentPos, setRecon }
+import { Pool } from "../entry/GoPool";
+
+export { init, frameReady, editable, gos, updateCurrentPoint, setWebsocket, getCurrentPos, setPool }
 
 let board_container = <HTMLDivElement>document.querySelector('.board-container'),
     frames = document.querySelectorAll('.frame'),
@@ -26,7 +28,8 @@ let gos: HTMLDivElement[][] = new Array<Array<HTMLDivElement>>();
 let current_x = -1, current_y = -1;
 
 let ws: WebSocket;
-let recon: any;
+
+let pool: Pool;
 
 function init() {
     board_container.style.display = 'none';
@@ -38,8 +41,8 @@ function setWebsocket(socket: WebSocket) {
     ws = socket;
 }
 
-function setRecon(reconnect: any) {
-    recon = reconnect;
+function setPool(p: Pool) {
+    pool = p;
 }
 
 function updateSigns(x: number, y: number) {
@@ -144,10 +147,18 @@ function initPieces(color: boolean) {
                     try {
                         if (ws.readyState == 1) {
                             ws.send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
+                            pool.updatePool(x, y);
+                            let id = setInterval(() => {
+                                if (pool.isEmpty())
+                                    clearInterval(id);
+                                else {
+                                    pool.sendData(ws);
+                                }
+                            }, 3000);
                         }
                     } catch (e) {
                         console.log(e);
-                        recon();
+                        ws.close();
                     }
 
                 }
