@@ -81,6 +81,8 @@ ws_route.get('/transfer', async function (ctx) {
                         clients.splice(clients.indexOf(client), 1);
                         if (con.GetPoster().Getws().readyState === 1 && con.GetReceiver().Getws().readyState === 1) {
                             setConnect(con);
+                            con.GetPoster().Getws().send(JSON.stringify({ 'type': 'reconnect' }));
+                            con.GetReceiver().Getws().send(JSON.stringify({ 'type': 'reconnect' }));
                         }
                     }
                     break;
@@ -149,7 +151,7 @@ function clearConnectMaps() {
         if (hoster.readyState === 3 && receiver.readyState === 3) {
             setTimeout(() => {
                 connectMap.delete(k);
-            }, 3600000);
+            }, 600000);
         }
     });
 }

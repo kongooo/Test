@@ -70,7 +70,12 @@ ws.onmessage = (mes) => {
 
 function reconnect() {
     console.log('reconnect type: ' + type);
-    ws = new WebSocket(path);
+    try{
+        ws = new WebSocket(path);
+    }catch(e){
+        console.log(e);
+        ws.close();
+    }
     setWebsocket(ws);
     ws.onmessage = (mes) => {
         let val = JSON.parse(mes.data);
@@ -101,11 +106,15 @@ function reconnect() {
                 } catch (e) {
                     console.log(e);
                 }
-
+                break;
+            case 'reconnect':
+                reconSuccess = true;
+                ws.send(JSON.stringify({ 'type': 'data', 'PointX': getCurrentPos()[0], 'PointY': getCurrentPos()[1] }));
+                break;
         }
     }
     ws.onclose = e => {
-        reconnect();
+        closeAct();
     }
 
     ws.onerror = (err) => {
@@ -116,7 +125,6 @@ function reconnect() {
     ws.onopen = e => {
         try {
             ws.send(JSON.stringify({ 'type': 'reconnect', 'pcode': code_val, 'name': type }));
-            ws.send(JSON.stringify({ 'type': 'data', 'PointX': getCurrentPos()[0], 'PointY': getCurrentPos()[1] }));
         } catch (e) {
             console.log(e);
             reconnect();
@@ -134,6 +142,11 @@ ws.onopen = e => {
 }
 
 ws.onclose = e => {
+    closeAct();
+}
+
+function closeAct(){
+    reconSuccess = false;
     reconnect();
 }
 
