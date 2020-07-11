@@ -5,6 +5,7 @@ const RandomCode_1 = require("./RandomCode");
 class Client {
     constructor(ws) {
         this.ws = ws;
+        this.points = new Set();
     }
     Getws() {
         return this.ws;
@@ -14,6 +15,21 @@ class Client {
     }
     SetID(id) {
         this.id = id;
+    }
+    addPoint(x, y) {
+        this.points.add(y * 9 + x);
+    }
+    findPoint(x, y) {
+        return this.points.has(y * 9 + x);
+    }
+    deletePoint(x, y) {
+        this.points.delete(y * 9 + x);
+    }
+    setPoints(p) {
+        this.points = p;
+    }
+    getPoints() {
+        return this.points;
     }
 }
 exports.Client = Client;

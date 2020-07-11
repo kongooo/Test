@@ -1,7 +1,7 @@
 import '../../css/UI.scss';
 import { SendName, chooseDis, WordShow } from '../control/commit'
 import { copyShow, joinDis, SendCode, codeError, successAct, sendHost } from '../control/connect'
-import { frameReady, editable, gos, updateCurrentPoint, init, setWebsocket, getCurrentPos, setRecon, sending } from '../control/board'
+import { frameReady, editable, gos, updateCurrentPoint, init, setWebsocket, getCurrentPos, setRecon } from '../control/board'
 
 let path = 'wss://' + window.location.host + '/ws/transfer';
 
@@ -12,7 +12,6 @@ let type = 'joiner';
 
 ws.onmessage = (mes) => {
     let val = JSON.parse(mes.data);
-
     switch (val.type) {
 
         case 'code':
@@ -40,6 +39,7 @@ ws.onmessage = (mes) => {
                 color = successAct();
                 frameReady(color);
                 code_val = val.pcode;
+                heartCheck.start();
             }
 
             break;
@@ -61,6 +61,10 @@ ws.onmessage = (mes) => {
             (<HTMLDivElement>document.querySelector('.keep-out')).style.zIndex = '0';
 
             break;
+        case 'pong':
+            heartCheck.reset();
+            // console.log('pong');
+            break;
     }
 }
 
@@ -70,7 +74,7 @@ function reconnect() {
     setWebsocket(ws);
     ws.onmessage = (mes) => {
         let val = JSON.parse(mes.data);
-
+        heartCheck.reset();
         switch (val.type) {
             case 'data':
                 let x = val.PointX, y = val.PointY;
@@ -89,17 +93,30 @@ function reconnect() {
                 (<HTMLDivElement>document.querySelector('.keep-out')).style.zIndex = '0';
 
                 break;
+            case 'again':
+                try {
+                    setTimeout(() => {
+                        ws.send(JSON.stringify({ 'type': 'data', 'PointX': getCurrentPos()[0], 'PointY': getCurrentPos()[1] }));
+                    }, 1000);
+                } catch (e) {
+                    console.log(e);
+                }
+
         }
     }
     ws.onclose = e => {
         reconnect();
     }
 
+    ws.onerror = (err) => {
+        console.log(err);
+        ws.close();
+    }
+
     ws.onopen = e => {
         try {
             ws.send(JSON.stringify({ 'type': 'reconnect', 'pcode': code_val, 'name': type }));
-            if (!sending)
-                ws.send(JSON.stringify({ 'type': 'data', 'PointX': getCurrentPos()[0], 'PointY': getCurrentPos()[1] }));
+            ws.send(JSON.stringify({ 'type': 'data', 'PointX': getCurrentPos()[0], 'PointY': getCurrentPos()[1] }));
         } catch (e) {
             console.log(e);
             reconnect();
@@ -109,6 +126,11 @@ function reconnect() {
 
 ws.onerror = (err) => {
     console.log(err);
+    ws.close();
+}
+
+ws.onopen = e => {
+
 }
 
 ws.onclose = e => {
@@ -126,6 +148,26 @@ sendHost(ws);
 
 (window as any).close = close;
 (window as any).reconnect = reconnect;
+
+let heartCheck = {
+    interval: 1000,
+    timeOut: 2000,
+    checkObj: setTimeout(() => { }, 10),
+    returnObj: setTimeout(() => { }, 10),
+    start: function () {
+        this.checkObj = setTimeout(() => {
+            ws.send(JSON.stringify({ 'type': 'ping' }));
+            this.returnObj = setTimeout(() => {
+                ws.close();
+            }, this.timeOut);
+        }, this.interval)
+    },
+    reset: function () {
+        clearTimeout(this.checkObj);
+        clearTimeout(this.returnObj);
+        this.start();
+    }
+}
 
 
 

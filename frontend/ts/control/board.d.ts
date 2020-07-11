@@ -1,7 +1,6 @@
-export { init, frameReady, editable, gos, sending, updateCurrentPoint, setWebsocket, getCurrentPos, setRecon };
+export { init, frameReady, editable, gos, updateCurrentPoint, setWebsocket, getCurrentPos, setRecon };
 declare let editable: boolean[][];
 declare let gos: HTMLDivElement[][];
-declare let sending: boolean;
 declare function init(): void;
 declare function setWebsocket(socket: WebSocket): void;
 declare function setRecon(reconnect: any): void;

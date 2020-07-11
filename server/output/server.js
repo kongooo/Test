@@ -68,10 +68,16 @@ ws_route.get('/transfer', async function (ctx) {
                 case 'reconnect':
                     if (connectMap.has(val.pcode)) {
                         let con = connectMap.get(val.pcode);
-                        if (val.name === 'hoster')
-                            con.setPoster(new ClientSocket_1.Hoster(client.Getws()));
-                        else if (val.name === 'joiner')
-                            con.setReceiver(client);
+                        if (val.name === 'hoster') {
+                            let hoster = new ClientSocket_1.Hoster(client.Getws());
+                            hoster.setPoints(con.GetPoster().getPoints());
+                            con.setPoster(hoster);
+                        }
+                        else if (val.name === 'joiner') {
+                            let receiver = client;
+                            receiver.setPoints(con.GetReceiver().getPoints());
+                            con.setReceiver(receiver);
+                        }
                         clients.splice(clients.indexOf(client), 1);
                         if (con.GetPoster().Getws().readyState === 1 && con.GetReceiver().Getws().readyState === 1) {
                             setConnect(con);
@@ -88,17 +94,38 @@ ws_route.get('/transfer', async function (ctx) {
     }
 });
 function setConnect(connect) {
-    let poster = connect.GetPoster().Getws(), receiver = connect.GetReceiver().Getws();
-    poster.on('message', function (mes) {
-        let state = receiver.readyState;
+    let poster = connect.GetPoster(), receiver = connect.GetReceiver();
+    setClient(poster, receiver);
+    setClient(receiver, poster);
+}
+function setClient(poster, receiver) {
+    poster.Getws().on('message', function (mes) {
+        let state = receiver.Getws().readyState;
         switch (JSON.parse(mes).type) {
             case 'data':
                 let x = JSON.parse(mes).PointX, y = JSON.parse(mes).PointY;
+                if (!poster.findPoint(x, y)) {
+                    try {
+                        if (state == 1) {
+                            receiver.Getws().send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
+                            receiver.addPoint(x, y);
+                            poster.addPoint(x, y);
+                        }
+                        else {
+                            if (poster.Getws().readyState === 1)
+                                poster.Getws().send(JSON.stringify({ 'type': 'again' }));
+                        }
+                    }
+                    catch (e) {
+                        console.log(e);
+                    }
+                }
+                break;
+            case 'ping':
                 try {
-                    if (state == 1)
-                        receiver.send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
-                    // else
-                    //     poster.close();
+                    if (state == 1) {
+                        receiver.Getws().send(JSON.stringify({ 'type': 'pong' }));
+                    }
                 }
                 catch (e) {
                     console.log(e);
@@ -106,28 +133,8 @@ function setConnect(connect) {
                 break;
         }
     });
-    receiver.on('close', function (e) {
+    poster.Getws().on('close', function (e) {
         console.log('poster close');
-    });
-    receiver.on('message', function (mes) {
-        let state = poster.readyState;
-        switch (JSON.parse(mes).type) {
-            case 'data':
-                let x = JSON.parse(mes).PointX, y = JSON.parse(mes).PointY;
-                try {
-                    if (state == 1)
-                        poster.send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
-                    // else
-                    //     receiver.close();
-                }
-                catch (e) {
-                    console.log(e);
-                }
-                break;
-        }
-    });
-    receiver.on('close', function (e) {
-        console.log('receiver close');
     });
 }
 function clearHosterMaps() {

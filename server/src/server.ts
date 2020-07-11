@@ -84,10 +84,17 @@ ws_route.get('/transfer', async function (ctx: any) {
                 case 'reconnect':
                     if (connectMap.has(val.pcode)) {
                         let con = connectMap.get(val.pcode);
-                        if (val.name === 'hoster')
-                            con.setPoster(new Hoster(client.Getws()));
-                        else if (val.name === 'joiner')
-                            con.setReceiver(<Joiner>client);
+                        if (val.name === 'hoster') {
+                            let hoster = new Hoster(client.Getws());
+                            hoster.setPoints(con.GetPoster().getPoints());
+                            con.setPoster(hoster);
+                        }
+
+                        else if (val.name === 'joiner') {
+                            let receiver = <Joiner>client;
+                            receiver.setPoints(con.GetReceiver().getPoints());
+                            con.setReceiver(receiver);
+                        }
 
                         clients.splice(clients.indexOf(client), 1);
 
@@ -108,18 +115,39 @@ ws_route.get('/transfer', async function (ctx: any) {
 })
 
 function setConnect(connect: ClientSocket) {
-    let poster = connect.GetPoster().Getws(), receiver = connect.GetReceiver().Getws();
-    poster.on('message', function (mes: any) {
-        let state = receiver.readyState;
+    let poster = connect.GetPoster(), receiver = connect.GetReceiver();
+    setClient(poster, receiver);
+    setClient(receiver, poster);
+}
+
+function setClient(poster: any, receiver: any) {
+    poster.Getws().on('message', function (mes: any) {
+        let state = receiver.Getws().readyState;
         switch (JSON.parse(mes).type) {
             case 'data':
                 let x = JSON.parse(mes).PointX,
                     y = JSON.parse(mes).PointY;
+
+                if (!poster.findPoint(x, y)) {
+                    try {
+                        if (state == 1) {
+                            receiver.Getws().send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
+                            receiver.addPoint(x, y);
+                            poster.addPoint(x, y);
+                        } else {
+                            if (poster.Getws().readyState === 1) poster.Getws().send(JSON.stringify({ 'type': 'again' }));
+                        }
+                    } catch (e) {
+                        console.log(e);
+                    }
+                }
+
+                break;
+            case 'ping':
                 try {
-                    if (state == 1)
-                        receiver.send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
-                    // else
-                    //     poster.close();
+                    if (state == 1) {
+                        receiver.Getws().send(JSON.stringify({ 'type': 'pong' }));
+                    }
                 } catch (e) {
                     console.log(e);
                 }
@@ -127,31 +155,8 @@ function setConnect(connect: ClientSocket) {
         }
     });
 
-    receiver.on('close', function (e: any) {
+    poster.Getws().on('close', function (e: any) {
         console.log('poster close');
-    });
-
-
-    receiver.on('message', function (mes: any) {
-        let state = poster.readyState;
-        switch (JSON.parse(mes).type) {
-            case 'data':
-                let x = JSON.parse(mes).PointX,
-                    y = JSON.parse(mes).PointY;
-                try {
-                    if (state == 1)
-                        poster.send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
-                    // else
-                    //     receiver.close();
-                } catch (e) {
-                    console.log(e);
-                }
-                break;
-        }
-    })
-
-    receiver.on('close', function (e: any) {
-        console.log('receiver close');
     });
 }
 

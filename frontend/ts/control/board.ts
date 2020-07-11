@@ -1,4 +1,4 @@
-export { init, frameReady, editable, gos, sending, updateCurrentPoint, setWebsocket, getCurrentPos, setRecon }
+export { init, frameReady, editable, gos, updateCurrentPoint, setWebsocket, getCurrentPos, setRecon }
 
 let board_container = <HTMLDivElement>document.querySelector('.board-container'),
     frames = document.querySelectorAll('.frame'),
@@ -27,7 +27,6 @@ let current_x = -1, current_y = -1;
 
 let ws: WebSocket;
 let recon: any;
-let sending: boolean;
 
 function init() {
     board_container.style.display = 'none';
@@ -144,12 +143,9 @@ function initPieces(color: boolean) {
                     (<HTMLDivElement>document.querySelector('.keep-out')).style.zIndex = '2';
                     try {
                         if (ws.readyState == 1) {
-                            sending = true;
                             ws.send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
                         }
-                        else sending = false;
                     } catch (e) {
-                        sending = false;
                         console.log(e);
                         recon();
                     }

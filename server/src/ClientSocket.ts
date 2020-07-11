@@ -5,8 +5,10 @@ export { Client, Hoster, Joiner, ClientSocket };
 class Client {
     private ws: any;
     private id: string;
+    private points: Set<number>;
     constructor(ws: any) {
         this.ws = ws;
+        this.points = new Set();
     }
 
     Getws() {
@@ -19,6 +21,26 @@ class Client {
 
     SetID(id: string) {
         this.id = id;
+    }
+
+    addPoint(x: number, y: number) {
+        this.points.add(y * 9 + x);
+    }
+
+    findPoint(x: number, y: number) {
+        return this.points.has(y * 9 + x);
+    }
+
+    deletePoint(x: number, y: number) {
+        this.points.delete(y * 9 + x);
+    }
+
+    setPoints(p: Set<number>) {
+        this.points = p;
+    }
+
+    getPoints() {
+        return this.points;
     }
 }
 
