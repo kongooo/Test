@@ -118,6 +118,8 @@ function setClient(poster, receiver) {
                                 if (!receiver.getAck()) {
                                     if (receiver.Getws().readyState === 1)
                                         receiver.Getws().send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
+                                    else
+                                        receiver.Getws().close();
                                 }
                                 else
                                     clearInterval(id);
