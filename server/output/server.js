@@ -103,7 +103,7 @@ function setConnect(connect) {
 function setClient(poster, receiver) {
     poster.Getws().on('message', function (mes) {
         let state = receiver.Getws().readyState;
-        console.log(poster.GetID() + ' to ' + receiver.GetID() + ': ' + mes);
+        // console.log(poster.GetID() + ' to ' + receiver.GetID() + ': ' + mes);
         switch (JSON.parse(mes).type) {
             case 'data':
                 let x = JSON.parse(mes).PointX, y = JSON.parse(mes).PointY;
@@ -118,15 +118,6 @@ function setClient(poster, receiver) {
                     console.log(e);
                 }
                 break;
-            // case 'ping':
-            //     try {
-            //         if (state == 1) {
-            //             receiver.Getws().send(JSON.stringify({ 'type': 'pong' }));
-            //         }
-            //     } catch (e) {
-            //         console.log(e);
-            //     }
-            //     break;
             case 'ack':
                 if (receiver.Getws().readyState === 1)
                     receiver.Getws().send(JSON.stringify({ 'type': 'ack' }));

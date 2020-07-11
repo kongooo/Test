@@ -39,7 +39,6 @@ function reconnect() {
 function initWs() {
     ws.onmessage = (mes) => {
         let val = JSON.parse(mes.data);
-        // heartCheck.reset();
         switch (val.type) {
             case 'code':
 
@@ -65,7 +64,6 @@ function initWs() {
                     color = successAct();
                     frameReady(color);
                     code_val = val.pcode;
-                    // heartCheck.start();
                 }
 
                 break;
@@ -110,15 +108,12 @@ function closeAct() {
     reconnect();
 }
 
-function close() {
-    ws.close();
-}
 
 function sendFunc(data: string) {
     try {
         if (ws.readyState === 1)
             ws.send(data);
-        else 
+        else
             ws.close();
     } catch (e) {
         console.log(e);
@@ -130,29 +125,6 @@ init();
 SendName(ws);
 SendCode(ws);
 sendHost(ws);
-
-(window as any).close = close;
-(window as any).reconnect = reconnect;
-
-// let heartCheck = {
-//     interval: 1000,
-//     timeOut: 5000,
-//     checkObj: setTimeout(() => { }, 10),
-//     returnObj: setTimeout(() => { }, 10),
-//     start: function () {
-//         this.checkObj = setTimeout(() => {
-//             ws.send(JSON.stringify({ 'type': 'ping' }));
-//             this.returnObj = setTimeout(() => {
-//                 ws.close();
-//             }, this.timeOut);
-//         }, this.interval)
-//     },
-//     reset: function () {
-//         clearTimeout(this.checkObj);
-//         clearTimeout(this.returnObj);
-//         this.start();
-//     }
-// }
 
 
 
