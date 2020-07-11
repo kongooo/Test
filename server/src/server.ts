@@ -140,6 +140,7 @@ function setClient(poster: any, receiver: any) {
                             receiver.addPoint(x, y);
                             let id = setInterval(() => {
                                 if (!receiver.getAck()) {
+                                    console.log('acking-------------');
                                     if (receiver.Getws().readyState === 1)
                                         receiver.Getws().send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
                                     else
