@@ -108,7 +108,6 @@ function reconnect() {
                 }
                 break;
             case 'reconnect':
-                reconSuccess = true;
                 ws.send(JSON.stringify({ 'type': 'data', 'PointX': getCurrentPos()[0], 'PointY': getCurrentPos()[1] }));
                 break;
         }
@@ -146,7 +145,6 @@ ws.onclose = e => {
 }
 
 function closeAct(){
-    reconSuccess = false;
     reconnect();
 }
 
