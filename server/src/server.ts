@@ -124,6 +124,7 @@ function setConnect(connect: ClientSocket) {
 function setClient(poster: any, receiver: any) {
     poster.Getws().on('message', function (mes: any) {
         let state = receiver.Getws().readyState;
+        console.log(mes);
         switch (JSON.parse(mes).type) {
             case 'data':
                 let x = JSON.parse(mes).PointX,
@@ -138,12 +139,13 @@ function setClient(poster: any, receiver: any) {
                             receiver.Getws().send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
                             receiver.addPoint(x, y);
                             let id = setInterval(() => {
-                                if(!receiver.getAck()){
-                                    receiver.Getws().send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
-                                }else 
+                                if (!receiver.getAck()) {
+                                    if (receiver.Getws().readyState === 1)
+                                        receiver.Getws().send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
+                                } else
                                     clearInterval(id);
                             }, 5000);
-                            
+
                         } else {
                             if (poster.Getws().readyState === 1) poster.Getws().send(JSON.stringify({ 'type': 'again' }));
                         }
@@ -169,7 +171,7 @@ function setClient(poster: any, receiver: any) {
     });
 
     poster.Getws().on('close', function (e: any) {
-        console.log('poster close');
+        // console.log('poster close');
     });
 }
 

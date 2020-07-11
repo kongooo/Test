@@ -1,5 +1,5 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function(mod) {
+var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -11,20 +11,16 @@ const koa_bodyparser_1 = __importDefault(require("koa-bodyparser"));
 const koa_1 = __importDefault(require("koa"));
 const app = new koa_1.default();
 const websocket = require('koa-easy-ws');
-const { stat } = require("fs");
 const temp_path = path_1.default.join(__dirname, '../../dist');
 const main = koa_static_1.default(temp_path);
 const ws_route = new koa_router_1.default();
 const main_route = new koa_router_1.default();
-let clients = new Array(),
-    connects = new Array(),
-    connectMap = new Map(),
-    hosterMap = new Map();
-ws_route.get('/transfer', async function(ctx) {
+let clients = new Array(), connects = new Array(), connectMap = new Map(), hosterMap = new Map();
+ws_route.get('/transfer', async function (ctx) {
     if (ctx.ws) {
         const ws = await ctx.ws();
         let client = new ClientSocket_1.Client(ws);
-        client.Getws().on('message', function(mes) {
+        client.Getws().on('message', function (mes) {
             let val = JSON.parse(mes);
             switch (val.type) {
                 case 'host':
@@ -32,7 +28,8 @@ ws_route.get('/transfer', async function(ctx) {
                     post_temp.SetID(client.GetID());
                     try {
                         post_temp.Getws().send(JSON.stringify({ 'type': 'code', 'code': post_temp.GetCode() }));
-                    } catch (e) {
+                    }
+                    catch (e) {
                         console.log(e);
                     }
                     hosterMap.set(post_temp.GetCode(), post_temp);
@@ -54,13 +51,16 @@ ws_route.get('/transfer', async function(ctx) {
                         try {
                             hoster.Getws().send(JSON.stringify({ 'type': 'connect', 'connect': 'success', 'pcode': val.code }));
                             joiner.Getws().send(JSON.stringify({ 'type': 'connect', 'connect': 'success', 'pcode': val.code }));
-                        } catch (e) {
+                        }
+                        catch (e) {
                             console.log(e);
                         }
-                    } else {
+                    }
+                    else {
                         try {
                             client.Getws().send(JSON.stringify({ 'type': 'connect', 'connect': 'fail' }));
-                        } catch (e) {
+                        }
+                        catch (e) {
                             console.log(e);
                         }
                     }
@@ -72,7 +72,8 @@ ws_route.get('/transfer', async function(ctx) {
                             let hoster = new ClientSocket_1.Hoster(client.Getws());
                             hoster.setPoints(con.GetPoster().getPoints());
                             con.setPoster(hoster);
-                        } else if (val.name === 'joiner') {
+                        }
+                        else if (val.name === 'joiner') {
                             let receiver = client;
                             receiver.setPoints(con.GetReceiver().getPoints());
                             con.setReceiver(receiver);
@@ -94,21 +95,18 @@ ws_route.get('/transfer', async function(ctx) {
         clearConnectMaps();
     }
 });
-
 function setConnect(connect) {
-    let poster = connect.GetPoster(),
-        receiver = connect.GetReceiver();
+    let poster = connect.GetPoster(), receiver = connect.GetReceiver();
     setClient(poster, receiver);
     setClient(receiver, poster);
 }
-
 function setClient(poster, receiver) {
-    poster.Getws().on('message', function(mes) {
+    poster.Getws().on('message', function (mes) {
         let state = receiver.Getws().readyState;
+        console.log(mes);
         switch (JSON.parse(mes).type) {
             case 'data':
-                let x = JSON.parse(mes).PointX,
-                    y = JSON.parse(mes).PointY;
+                let x = JSON.parse(mes).PointX, y = JSON.parse(mes).PointY;
                 if (!poster.findPoint(x, y)) {
                     try {
                         if (state == 1) {
@@ -118,20 +116,19 @@ function setClient(poster, receiver) {
                             receiver.addPoint(x, y);
                             let id = setInterval(() => {
                                 if (!receiver.getAck()) {
-                                    if (receiver.Getws().state === 1)
+                                    if (receiver.Getws().readyState === 1)
                                         receiver.Getws().send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
-                                    else if (poster.Getws().readyState === 1)
-                                        poster.Getws().send(JSON.stringify({ 'type': 'again' }));
-                                } else
+                                }
+                                else
                                     clearInterval(id);
                             }, 5000);
-                        } else {
+                        }
+                        else {
                             if (poster.Getws().readyState === 1)
                                 poster.Getws().send(JSON.stringify({ 'type': 'again' }));
-                            else
-                                poster.Getws().close();
                         }
-                    } catch (e) {
+                    }
+                    catch (e) {
                         console.log(e);
                     }
                 }
@@ -141,7 +138,8 @@ function setClient(poster, receiver) {
                     if (state == 1) {
                         receiver.Getws().send(JSON.stringify({ 'type': 'pong' }));
                     }
-                } catch (e) {
+                }
+                catch (e) {
                     console.log(e);
                 }
                 break;
@@ -150,22 +148,19 @@ function setClient(poster, receiver) {
                 break;
         }
     });
-    poster.Getws().on('close', function(e) {
-        console.log('poster close');
+    poster.Getws().on('close', function (e) {
+        // console.log('poster close');
     });
 }
-
 function clearHosterMaps() {
     hosterMap.forEach((v, k) => {
         if (v.Getws().readyState === 3)
             hosterMap.delete(k);
     });
 }
-
 function clearConnectMaps() {
     connectMap.forEach((v, k) => {
-        let hoster = v.GetPoster().Getws(),
-            receiver = v.GetReceiver().Getws();
+        let hoster = v.GetPoster().Getws(), receiver = v.GetReceiver().Getws();
         if (hoster.readyState === 3 && receiver.readyState === 3) {
             setTimeout(() => {
                 connectMap.delete(k);
@@ -173,7 +168,6 @@ function clearConnectMaps() {
         }
     });
 }
-
 function clearConnects() {
     let index = 0;
     connects.forEach(c => {
@@ -182,7 +176,6 @@ function clearConnects() {
         index++;
     });
 }
-
 function clearClients() {
     let index = 0;
     clients.forEach(c => {
