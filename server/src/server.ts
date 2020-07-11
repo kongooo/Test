@@ -143,8 +143,10 @@ function setClient(poster: any, receiver: any) {
                                     console.log('acking-------------');
                                     if (receiver.Getws().readyState === 1)
                                         receiver.Getws().send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
-                                    else
+                                    else{
                                         receiver.Getws().close();
+                                        clearInterval(id);
+                                    }
                                 } else
                                     clearInterval(id);
                             }, 5000);
