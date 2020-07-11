@@ -118,6 +118,8 @@ function sendFunc(data: string) {
     try {
         if (ws.readyState === 1)
             ws.send(data);
+        else 
+            ws.close();
     } catch (e) {
         console.log(e);
         ws.close();

@@ -124,7 +124,7 @@ function setConnect(connect: ClientSocket) {
 function setClient(poster: any, receiver: any) {
     poster.Getws().on('message', function (mes: any) {
         let state = receiver.Getws().readyState;
-        console.log(mes);
+        console.log(poster.GetID() + ' to ' + receiver.GetID() + ': ' + mes);
         switch (JSON.parse(mes).type) {
             case 'data':
                 let x = JSON.parse(mes).PointX,
@@ -132,7 +132,7 @@ function setClient(poster: any, receiver: any) {
                 try {
                     if (state == 1) {
                         receiver.Getws().send(JSON.stringify({ 'type': 'data', 'PointX': x, 'PointY': y }));
-                    }
+                    } else receiver.Getws().close();
                 } catch (e) {
                     console.log(e);
                 }
