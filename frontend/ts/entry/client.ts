@@ -107,6 +107,9 @@ function reconnect() {
                     console.log(e);
                 }
                 break;
+            case 'reconnect':
+                ws.send(JSON.stringify({ 'type': 'data', 'PointX': getCurrentPos()[0], 'PointY': getCurrentPos()[1] }));
+                break;
         }
     }
     ws.onclose = e => {
@@ -121,7 +124,6 @@ function reconnect() {
     ws.onopen = e => {
         try {
             ws.send(JSON.stringify({ 'type': 'reconnect', 'pcode': code_val, 'name': type }));
-            ws.send(JSON.stringify({ 'type': 'data', 'PointX': getCurrentPos()[0], 'PointY': getCurrentPos()[1] }));
         } catch (e) {
             console.log(e);
             reconnect();
@@ -160,7 +162,7 @@ sendHost(ws);
 
 let heartCheck = {
     interval: 1000,
-    timeOut: 2000,
+    timeOut: 5000,
     checkObj: setTimeout(() => { }, 10),
     returnObj: setTimeout(() => { }, 10),
     start: function () {
