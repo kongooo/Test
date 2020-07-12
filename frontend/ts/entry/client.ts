@@ -29,13 +29,13 @@ function reconnect() {
     }
     setTimeout(() => {
         if (ws.readyState === 2 || ws.readyState === 3) { ws.close(); }
-    }, 3000);
+    }, 10000);
     setWebsocket(ws);
 
     initWs();
 
     ws.onopen = e => {
-        sendFunc(JSON.stringify({ 'type': 'reconnect', 'pcode': code_val, 'name': type }))
+        sendFunc(JSON.stringify({ 'type': 'reconnect', 'pcode': code_val, 'name': type }));
     }
 }
 
