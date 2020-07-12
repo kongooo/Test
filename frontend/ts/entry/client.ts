@@ -5,7 +5,7 @@ import { copyShow, joinDis, SendCode, codeError, successAct, sendHost, setConnec
 import { frameReady, editable, gos, updateCurrentPoint, init, setWebsocket, getCurrentPos, setPool } from '../control/board'
 import { Pool } from './GoPool';
 
-let path = 'ws://' + window.location.host + '/ws/transfer';
+let path = 'wss://' + window.location.host + '/ws/transfer';
 
 let ws = new WebSocket(path);
 let color: boolean;
