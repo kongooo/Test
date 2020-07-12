@@ -1,6 +1,6 @@
 import { WordShow, WordDis, chooseDis } from './commit'
 
-export { copyShow, joinDis, SendCode, codeError, successAct, sendHost };
+export { copyShow, joinDis, SendCode, codeError, successAct, sendHost, setConnectWs };
 
 let copy_text = <HTMLInputElement>document.querySelector('.code-copy'),
     code_span = <HTMLSpanElement>document.querySelector('.code-value'),
@@ -13,20 +13,26 @@ let copy_text = <HTMLInputElement>document.querySelector('.code-copy'),
     join_page = <HTMLDivElement>document.querySelector('.join-page'),
     host_btn = <HTMLDivElement>document.querySelector('.host-btn');
 
-const invite_text = 'please input your invite code';
+const invite_text = 'please input invite code';
 const join_show_time = 30, join_dis_time = 50, host_dis_time = 50;
 
 let code_judge = false;
+let ws: any;
 
 join_btn.addEventListener('click', joinClick);
 
 copy_btn.addEventListener('click', copy);
+
+function setConnectWs(w: any) {
+    ws = w;
+}
 
 function joinClick() {
     chooseDis();
     code_send.classList.add('send-show');
     WordShow(invite_container, invite_text, join_show_time, null);
     host_page.style.display = 'none';
+    document.querySelector('.code-send-btn').classList.add('code-send-btn-show');
 }
 
 function copy() {
@@ -94,17 +100,23 @@ function SendCode(ws: any) {
         document.onkeydown = function (e) {
 
             if (e.code == "Enter") {
-                if (code_send.value.length < 1) {
-                    invite_container.style.color = "red";
-                    setTimeout(() => {
-                        invite_container.style.color = "#595959";
-                    }, 100);
-                }
-                else if (!code_judge) {
-                    ws.send(JSON.stringify({ 'type': 'code', 'code': code_send.value }));
-                }
+                send();
             }
         }
+    }
+
+    document.querySelector('.code-send-btn').addEventListener('click', send);
+}
+
+function send() {
+    if (code_send.value.length < 1) {
+        invite_container.style.color = "red";
+        setTimeout(() => {
+            invite_container.style.color = "#595959";
+        }, 100);
+    }
+    else if (!code_judge) {
+        ws.send(JSON.stringify({ 'type': 'code', 'code': code_send.value }));
     }
 }
 

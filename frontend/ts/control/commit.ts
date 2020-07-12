@@ -1,4 +1,4 @@
-export { SendName, word_content, chooseDis, WordShow, WordDis };
+export { setWs, SendName, word_content, chooseDis, WordShow, WordDis };
 
 const home_word = "please input your name";
 
@@ -10,7 +10,13 @@ let name_input = <HTMLInputElement>document.querySelector('.id-input'),
 let send_judge = false;
 const name_show_time = 50, name_dis_time = 40;
 
-function setShowDis(){
+let ws: any;
+
+function setWs(w: any) {
+    ws = w;
+}
+
+function setShowDis() {
     choose_page.style.bottom = document.body.clientHeight / 2 + 100 + 'px';
 }
 
@@ -50,41 +56,47 @@ function wordDisAct() {
 }
 
 
-function SendName(ws: any) {
+function SendName() {
 
     name_input.onfocus = function () {
 
         document.onkeydown = function (e) {
 
             if (e.code == "Enter") {
-                if (name_input.value.length < 1) {
-                    word_content.style.color = "#e78c8c";
-                    setTimeout(() => {
-                        word_content.style.color = "#595959";
-                    }, 100);
-                }
-                else if (!send_judge) {
-                    setShowDis();
-                    send_judge = true;
-                    ws.send(JSON.stringify({ 'type': 'id', 'id': name_input.value }));
-
-                    WordDis(word_content, name_dis_time, wordDisAct);
-
-                    name_input.classList.add('input-dis');
-
-                    setTimeout(() => {
-                        choose_page.classList.add('choose-show');    
-                    }, 1);
-                }
+                send();
             }
         }
     }
+
+    document.querySelector('.name-send-btn').addEventListener('click', send);
 }
 
-function chooseDis(){
+function send() {
+    if (name_input.value.length < 1) {
+        word_content.style.color = "#e78c8c";
+        setTimeout(() => {
+            word_content.style.color = "#595959";
+        }, 100);
+    }
+    else if (!send_judge) {
+        setShowDis();
+        send_judge = true;
+        ws.send(JSON.stringify({ 'type': 'id', 'id': name_input.value }));
+
+        WordDis(word_content, name_dis_time, wordDisAct);
+
+        name_input.classList.add('input-dis');
+
+        setTimeout(() => {
+            choose_page.classList.add('choose-show');
+        }, 1);
+    }
+}
+
+function chooseDis() {
     choose_page.classList.add('choose-dis');
     setTimeout(() => {
-        choose_page.style.display='none';
+        choose_page.style.display = 'none';
     }, 700);
 }
 

@@ -1,0 +1,28 @@
+@media screen and (max-width: 750px) {
+    h1 {
+        font-size: 1.5rem;
+        display: block;
+    }
+    .id-input {
+        // display: block !important;
+        // margin: 15px 0;
+        // width: 206px;
+        margin-left: 0;
+    }
+    .code-send {
+        margin-left: 0;
+    }
+    // .send-btn {
+    //     top: -50px;
+    //     left: 225px;
+    // }
+}
+
+@media screen and (max-width: 600px) {
+    .code-copy {
+        width: 250px !important;
+    }
+    .code-value {
+        max-width: 250px !important;
+    }
+}
