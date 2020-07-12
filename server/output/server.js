@@ -71,11 +71,13 @@ ws_route.get('/transfer', async function (ctx) {
                         if (val.name === 'hoster') {
                             let hoster = new ClientSocket_1.Hoster(client.Getws());
                             hoster.setPoints(con.GetPoster().getPoints());
+                            hoster.SetID(con.GetPoster().GetID());
                             con.setPoster(hoster);
                         }
                         else if (val.name === 'joiner') {
                             let receiver = client;
                             receiver.setPoints(con.GetReceiver().getPoints());
+                            receiver.SetID(con.GetReceiver().GetID());
                             con.setReceiver(receiver);
                         }
                         clients.splice(clients.indexOf(client), 1);

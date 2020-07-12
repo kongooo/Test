@@ -27,7 +27,9 @@ function reconnect() {
         console.log(e);
         ws.close();
     }
-    if (ws.readyState === 2 || ws.readyState === 3) { ws.close(); return; }
+    setTimeout(() => {
+        if (ws.readyState === 2 || ws.readyState === 3) { ws.close(); }
+    }, 3000);
     setWebsocket(ws);
 
     initWs();
