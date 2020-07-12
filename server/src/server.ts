@@ -124,7 +124,7 @@ function setConnect(connect: ClientSocket) {
 function setClient(poster: any, receiver: any) {
     poster.Getws().on('message', function (mes: any) {
         let state = receiver.Getws().readyState;
-        // console.log(poster.GetID() + ' to ' + receiver.GetID() + ': ' + mes);
+        console.log(poster.GetID() + ' to ' + receiver.GetID() + ': ' + mes);
         switch (JSON.parse(mes).type) {
             case 'data':
                 let x = JSON.parse(mes).PointX,
@@ -145,7 +145,7 @@ function setClient(poster: any, receiver: any) {
     });
 
     poster.Getws().on('close', function (e: any) {
-        // console.log('poster close');
+        console.log(poster.GetID() + ' close');
     });
 }
 

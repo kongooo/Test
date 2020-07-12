@@ -103,7 +103,7 @@ function setConnect(connect) {
 function setClient(poster, receiver) {
     poster.Getws().on('message', function (mes) {
         let state = receiver.Getws().readyState;
-        // console.log(poster.GetID() + ' to ' + receiver.GetID() + ': ' + mes);
+        console.log(poster.GetID() + ' to ' + receiver.GetID() + ': ' + mes);
         switch (JSON.parse(mes).type) {
             case 'data':
                 let x = JSON.parse(mes).PointX, y = JSON.parse(mes).PointY;
@@ -125,7 +125,7 @@ function setClient(poster, receiver) {
         }
     });
     poster.Getws().on('close', function (e) {
-        // console.log('poster close');
+        console.log(poster.GetID() + ' close');
     });
 }
 function clearHosterMaps() {
