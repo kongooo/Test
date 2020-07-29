@@ -25,7 +25,7 @@ function WordShow(container: any, content: string, interval: number, action: () 
     function show() {
         if (index < content.length) {
             container.innerHTML += content[index++];
-            setTimeout(show, interval);
+            show_id = setTimeout(show, interval);
         } else {
             clearTimeout(show_id);
             if (action != null)

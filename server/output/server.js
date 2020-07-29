@@ -15,12 +15,12 @@ const temp_path = path_1.default.join(__dirname, '../../dist');
 const main = koa_static_1.default(temp_path);
 const ws_route = new koa_router_1.default();
 const main_route = new koa_router_1.default();
-let clients = new Array(), connects = new Array(), connectMap = new Map(), hosterMap = new Map();
+let clients = new Array(), connectMap = new Map(), hosterMap = new Map();
 ws_route.get('/transfer', async function (ctx) {
     if (ctx.ws) {
         const ws = await ctx.ws();
         let client = new ClientSocket_1.Client(ws);
-        client.Getws().on('message', function (mes) {
+        client.Getws().on('message', async function (mes) {
             let val = JSON.parse(mes);
             switch (val.type) {
                 case 'host':
@@ -46,7 +46,6 @@ ws_route.get('/transfer', async function (ctx) {
                         let connect = new ClientSocket_1.ClientSocket(hoster, joiner);
                         connectMap.set(hoster.GetCode(), connect);
                         setConnect(connect);
-                        connects.push(connect);
                         clients.splice(clients.indexOf(client), 1);
                         try {
                             hoster.Getws().send(JSON.stringify({ 'type': 'connect', 'connect': 'success', 'pcode': val.code }));
@@ -70,19 +69,17 @@ ws_route.get('/transfer', async function (ctx) {
                         let con = connectMap.get(val.pcode);
                         if (val.name === 'hoster') {
                             let hoster = new ClientSocket_1.Hoster(client.Getws());
-                            hoster.setPoints(con.GetPoster().getPoints());
                             hoster.SetID(con.GetPoster().GetID());
                             con.setPoster(hoster);
                         }
                         else if (val.name === 'joiner') {
                             let receiver = client;
-                            receiver.setPoints(con.GetReceiver().getPoints());
                             receiver.SetID(con.GetReceiver().GetID());
                             con.setReceiver(receiver);
                         }
                         clients.splice(clients.indexOf(client), 1);
                         if (con.GetPoster().Getws().readyState === 1 && con.GetReceiver().Getws().readyState === 1) {
-                            setConnect(con);
+                            await setConnect(con);
                             con.GetPoster().Getws().send(JSON.stringify({ 'type': 'reconnect' }));
                             con.GetReceiver().Getws().send(JSON.stringify({ 'type': 'reconnect' }));
                         }
@@ -92,12 +89,11 @@ ws_route.get('/transfer', async function (ctx) {
         });
         clients.push(client);
         clearClients();
-        clearConnects();
         clearHosterMaps();
         clearConnectMaps();
     }
 });
-function setConnect(connect) {
+async function setConnect(connect) {
     let poster = connect.GetPoster(), receiver = connect.GetReceiver();
     setClient(poster, receiver);
     setClient(receiver, poster);
@@ -144,14 +140,6 @@ function clearConnectMaps() {
                 connectMap.delete(k);
             }, 600000);
         }
-    });
-}
-function clearConnects() {
-    let index = 0;
-    connects.forEach(c => {
-        if (c.GetPoster().Getws().readyState == 3 || c.GetReceiver().Getws().readyState == 3)
-            connects.splice(index, 1);
-        index++;
     });
 }
 function clearClients() {

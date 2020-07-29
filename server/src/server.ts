@@ -16,7 +16,7 @@ const main = serve(temp_path);
 const ws_route = new router();
 const main_route = new router();
 
-let clients: Client[] = new Array(), connects: ClientSocket[] = new Array(), connectMap = new Map(), hosterMap = new Map();
+let clients: Client[] = new Array(), connectMap = new Map(), hosterMap = new Map();
 
 ws_route.get('/transfer', async function (ctx: any) {
     if (ctx.ws) {
@@ -25,7 +25,7 @@ ws_route.get('/transfer', async function (ctx: any) {
 
         let client = new Client(ws);
 
-        client.Getws().on('message', function (mes: any) {
+        client.Getws().on('message', async function (mes: any) {
 
             let val = JSON.parse(mes);
 
@@ -60,8 +60,6 @@ ws_route.get('/transfer', async function (ctx: any) {
 
                         setConnect(connect);
 
-                        connects.push(connect);
-
                         clients.splice(clients.indexOf(client), 1);
 
                         try {
@@ -78,7 +76,6 @@ ws_route.get('/transfer', async function (ctx: any) {
                             console.log(e);
                         }
                     }
-
                     break;
 
                 case 'reconnect':
@@ -86,13 +83,11 @@ ws_route.get('/transfer', async function (ctx: any) {
                         let con = connectMap.get(val.pcode);
                         if (val.name === 'hoster') {
                             let hoster = new Hoster(client.Getws());
-                            hoster.setPoints(con.GetPoster().getPoints());
                             hoster.SetID(con.GetPoster().GetID());
                             con.setPoster(hoster);
                         }
                         else if (val.name === 'joiner') {
                             let receiver = <Joiner>client;
-                            receiver.setPoints(con.GetReceiver().getPoints());
                             receiver.SetID(con.GetReceiver().GetID());
                             con.setReceiver(receiver);
                         }
@@ -100,7 +95,7 @@ ws_route.get('/transfer', async function (ctx: any) {
                         clients.splice(clients.indexOf(client), 1);
 
                         if (con.GetPoster().Getws().readyState === 1 && con.GetReceiver().Getws().readyState === 1) {
-                            setConnect(con);
+                            await setConnect(con);
                             con.GetPoster().Getws().send(JSON.stringify({ 'type': 'reconnect' }));
                             con.GetReceiver().Getws().send(JSON.stringify({ 'type': 'reconnect' }));
                         }
@@ -111,13 +106,12 @@ ws_route.get('/transfer', async function (ctx: any) {
 
         clients.push(client);
         clearClients();
-        clearConnects();
         clearHosterMaps();
         clearConnectMaps();
     }
 })
 
-function setConnect(connect: ClientSocket) {
+async function setConnect(connect: ClientSocket) {
     let poster = connect.GetPoster(), receiver = connect.GetReceiver();
     setClient(poster, receiver);
     setClient(receiver, poster);
@@ -165,15 +159,6 @@ function clearConnectMaps() {
                 connectMap.delete(k);
             }, 600000);
         }
-    })
-}
-
-function clearConnects() {
-    let index = 0;
-    connects.forEach(c => {
-        if (c.GetPoster().Getws().readyState == 3 || c.GetReceiver().Getws().readyState == 3)
-            connects.splice(index, 1);
-        index++;
     })
 }
 

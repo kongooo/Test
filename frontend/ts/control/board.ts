@@ -160,7 +160,6 @@ function initPieces(color: boolean) {
                         console.log(e);
                         ws.close();
                     }
-
                 }
             })
         }
@@ -169,6 +168,7 @@ function initPieces(color: boolean) {
     boardShow();
     showKeeps();
 }
+
 
 function getCurrentPos() {
     return [current_x, current_y];
